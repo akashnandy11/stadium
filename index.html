@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StadiumAI — Smart Stadium Experience System</title>
+    <meta name="description" content="AI-powered smart stadium system for crowd management, zero-wait experiences, and real-time coordination at large-scale sporting venues.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg">
+        <div class="ambient-orb orb-1"></div>
+        <div class="ambient-orb orb-2"></div>
+        <div class="ambient-orb orb-3"></div>
+        <div class="grid-overlay"></div>
+        <canvas id="particleCanvas"></canvas>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loader-content">
+            <div class="stadium-loader">
+                <div class="stadium-ring r1"></div>
+                <div class="stadium-ring r2"></div>
+                <div class="stadium-ring r3"></div>
+                <div class="stadium-core"></div>
+            </div>
+            <h1 class="loader-title">Stadium<span class="accent">AI</span></h1>
+            <p class="loader-tagline">"From chaos to control — redefining the stadium experience with AI."</p>
+            <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+            <div class="loader-stats">
+                <span class="ls-item"><span class="ls-val" id="lsSensors">0</span> Sensors Online</span>
+                <span class="ls-item"><span class="ls-val" id="lsCameras">0</span> Cameras Connected</span>
+                <span class="ls-item"><span class="ls-val" id="lsZones">0</span> Zones Mapped</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#brandGrad)" stroke-width="2.5" fill="none"/>
+                        <circle cx="20" cy="20" r="12" stroke="url(#brandGrad)" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        <circle cx="20" cy="20" r="6" fill="url(#brandGrad)" opacity="0.8"/>
+                        <circle cx="20" cy="20" r="3" fill="#fff"/>
+                        <defs>
+                            <linearGradient id="brandGrad" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#6366f1"/>
+                                <stop offset="100%" stop-color="#06b6d4"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">Stadium<span class="accent">AI</span></span>
+                    <span class="brand-sub">Command Center</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Main</div>
+                <button class="nav-item active" data-view="command" id="nav-command">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                    </div>
+                    <span class="nav-label">Command Center</span>
+                </button>
+                <button class="nav-item" data-view="crowd" id="nav-crowd">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <span class="nav-label">Crowd Flow</span>
+                    <span class="nav-badge pulse-badge">LIVE</span>
+                </button>
+                <button class="nav-item" data-view="zerowait" id="nav-zerowait">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <span class="nav-label">Zero-Wait</span>
+                </button>
+
+                <div class="nav-section-label">Experience</div>
+                <button class="nav-item" data-view="navigation" id="nav-navigation">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                    </div>
+                    <span class="nav-label">Navigation</span>
+                </button>
+                <button class="nav-item" data-view="fan" id="nav-fan">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <span class="nav-label">Fan Experience</span>
+                </button>
+                <button class="nav-item" data-view="emergency" id="nav-emergency">
+                    <div class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <span class="nav-label">Emergency</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <div class="status-dot online"></div>
+                    <span>All Systems Online</span>
+                </div>
+                <div class="sidebar-time" id="sidebarTime">--:--:--</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="topbar-info">
+                    <h2 class="topbar-title" id="pageTitle">Command Center</h2>
+                    <span class="topbar-breadcrumb" id="pageBreadcrumb">Dashboard / Overview</span>
+                </div>
+                <div class="topbar-actions">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" placeholder="Search zones, stalls..." id="globalSearch">
+                    </div>
+                    <button class="topbar-btn" id="btnNotifications" title="Notifications">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="notif-badge" id="notifCount">3</span>
+                    </button>
+                    <button class="topbar-btn" id="btnAlerts" title="Alerts">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </button>
+                    <div class="topbar-user">
+                        <div class="user-avatar">AC</div>
+                        <span class="user-name">Admin Console</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ========== VIEW: COMMAND CENTER ========== -->
+            <section id="view-command" class="view active">
+                <div class="view-content">
+                    <!-- KPI Row -->
+                    <div class="kpi-row">
+                        <div class="kpi-card" id="kpiAttendees">
+                            <div class="kpi-icon kpi-blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value" id="kpiAttendeesVal">0</span>
+                                <span class="kpi-label">Total Attendees</span>
+                                <span class="kpi-change positive">+12% from last event</span>
+                            </div>
+                            <div class="kpi-spark" id="sparkAttendees"></div>
+                        </div>
+                        <div class="kpi-card" id="kpiAvgWait">
+                            <div class="kpi-icon kpi-green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value"><span id="kpiAvgWaitVal">0</span> min</span>
+                                <span class="kpi-label">Avg Wait Time</span>
+                                <span class="kpi-change positive">-34% optimized</span>
+                            </div>
+                            <div class="kpi-spark" id="sparkWait"></div>
+                        </div>
+                        <div class="kpi-card" id="kpiSafety">
+                            <div class="kpi-icon kpi-emerald">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value" id="kpiSafetyVal">98.7%</span>
+                                <span class="kpi-label">Safety Score</span>
+                                <span class="kpi-change positive">All zones safe</span>
+                            </div>
+                            <div class="kpi-spark" id="sparkSafety"></div>
+                        </div>
+                        <div class="kpi-card" id="kpiSatisfaction">
+                            <div class="kpi-icon kpi-purple">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-value" id="kpiSatisfactionVal">4.8</span>
+                                <span class="kpi-label">Fan Satisfaction</span>
+                                <span class="kpi-change positive">⭐ Excellent</span>
+                            </div>
+                            <div class="kpi-spark" id="sparkSat"></div>
+                        </div>
+                    </div>
+
+                    <!-- Main Dashboard Grid -->
+                    <div class="dash-grid">
+                        <!-- Stadium Heatmap -->
+                        <div class="dash-card card-wide card-heatmap">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3>🏟️ Live Stadium Heatmap</h3>
+                                    <span class="live-tag"><span class="live-dot"></span>Real-time</span>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="card-action-btn active" data-layer="density">Density</button>
+                                    <button class="card-action-btn" data-layer="flow">Flow</button>
+                                    <button class="card-action-btn" data-layer="temp">Temperature</button>
+                                </div>
+                            </div>
+                            <div class="heatmap-container">
+                                <canvas id="heatmapCanvas"></canvas>
+                                <div class="heatmap-legend">
+                                    <span>Low</span>
+                                    <div class="legend-gradient"></div>
+                                    <span>High</span>
+                                </div>
+                                <div class="heatmap-zones" id="heatmapZones"></div>
+                            </div>
+                        </div>
+
+                        <!-- Live Queue Status -->
+                        <div class="dash-card card-queues">
+                            <div class="card-header">
+                                <h3>⏱️ Queue Status</h3>
+                                <span class="card-subtitle">AI-optimized wait times</span>
+                            </div>
+                            <div class="queue-list" id="queueList"></div>
+                        </div>
+
+                        <!-- Real-time Alerts Feed -->
+                        <div class="dash-card card-alerts">
+                            <div class="card-header">
+                                <h3>🔔 Live Alerts</h3>
+                                <button class="card-link" id="btnClearAlerts">Clear All</button>
+                            </div>
+                            <div class="alerts-feed" id="alertsFeed"></div>
+                        </div>
+
+                        <!-- Zone Capacity -->
+                        <div class="dash-card card-zones">
+                            <div class="card-header">
+                                <h3>📊 Zone Capacity</h3>
+                            </div>
+                            <div class="zone-bars" id="zoneBars"></div>
+                        </div>
+
+                        <!-- AI Insights -->
+                        <div class="dash-card card-insights">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3>🧠 AI Insights</h3>
+                                    <span class="ai-badge">Powered by AI</span>
+                                </div>
+                            </div>
+                            <div class="insights-list" id="insightsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== VIEW: CROWD FLOW ========== -->
+            <section id="view-crowd" class="view">
+                <div class="view-content">
+                    <div class="crowd-header">
+                        <div class="crowd-metric-cards">
+                            <div class="cm-card">
+                                <span class="cm-value" id="crowdTotal">45,230</span>
+                                <span class="cm-label">People Inside</span>
+                            </div>
+                            <div class="cm-card cm-entering">
+                                <span class="cm-value" id="crowdEntering">+124</span>
+                                <span class="cm-label">Entering/min</span>
+                            </div>
+                            <div class="cm-card cm-exiting">
+                                <span class="cm-value" id="crowdExiting">-47</span>
+                                <span class="cm-label">Exiting/min</span>
+                            </div>
+                            <div class="cm-card cm-density">
+                                <span class="cm-value" id="crowdDensity">72%</span>
+                                <span class="cm-label">Avg Density</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="crowd-grid">
+                        <!-- Large Stadium Map -->
+                        <div class="dash-card card-stadium-map">
+                            <div class="card-header">
+                                <h3>🏟️ Stadium Crowd Map</h3>
+                                <div class="card-actions">
+                                    <button class="card-action-btn active" id="mapViewReal">Real-time</button>
+                                    <button class="card-action-btn" id="mapViewPredict">Predicted</button>
+                                </div>
+                            </div>
+                            <div class="stadium-map-container">
+                                <canvas id="stadiumMapCanvas"></canvas>
+                                <div class="map-overlays" id="mapOverlays"></div>
+                            </div>
+                        </div>
+
+                        <!-- Gate Status -->
+                        <div class="dash-card card-gates">
+                            <div class="card-header"><h3>🚪 Gate Status</h3></div>
+                            <div class="gates-grid" id="gatesGrid"></div>
+                        </div>
+
+                        <!-- AI Route Suggestions -->
+                        <div class="dash-card card-routes">
+                            <div class="card-header">
+                                <h3>🛤️ AI Route Suggestions</h3>
+                                <span class="ai-badge">Smart Routing</span>
+                            </div>
+                            <div class="routes-list" id="routesList"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== VIEW: ZERO-WAIT ========== -->
+            <section id="view-zerowait" class="view">
+                <div class="view-content">
+                    <div class="zw-header">
+                        <div class="zw-hero">
+                            <h2>Zero-Wait <span class="accent">Experience</span></h2>
+                            <p>AI-powered predictive queue management</p>
+                        </div>
+                        <div class="zw-summary-cards">
+                            <div class="zw-sum">
+                                <span class="zw-sum-val" id="zwAvgWait">2.4</span>
+                                <span class="zw-sum-unit">min</span>
+                                <span class="zw-sum-label">Avg Wait</span>
+                            </div>
+                            <div class="zw-sum">
+                                <span class="zw-sum-val" id="zwStalls">24</span>
+                                <span class="zw-sum-unit">open</span>
+                                <span class="zw-sum-label">Food Stalls</span>
+                            </div>
+                            <div class="zw-sum">
+                                <span class="zw-sum-val" id="zwRestrooms">16</span>
+                                <span class="zw-sum-unit">available</span>
+                                <span class="zw-sum-label">Restrooms</span>
+                            </div>
+                            <div class="zw-sum">
+                                <span class="zw-sum-val" id="zwOrders">342</span>
+                                <span class="zw-sum-unit">active</span>
+                                <span class="zw-sum-label">Pre-Orders</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="zw-grid">
+                        <!-- Food Stalls -->
+                        <div class="dash-card card-food-stalls">
+                            <div class="card-header">
+                                <h3>🍔 Food & Beverages</h3>
+                                <div class="card-actions">
+                                    <button class="card-action-btn active">All</button>
+                                    <button class="card-action-btn">Food</button>
+                                    <button class="card-action-btn">Drinks</button>
+                                </div>
+                            </div>
+                            <div class="stalls-grid" id="stallsGrid"></div>
+                        </div>
+
+                        <!-- Restrooms -->
+                        <div class="dash-card card-restrooms">
+                            <div class="card-header">
+                                <h3>🚻 Restroom Status</h3>
+                                <span class="card-subtitle">Live occupancy</span>
+                            </div>
+                            <div class="restroom-grid" id="restroomGrid"></div>
+                        </div>
+
+                        <!-- Pre-Order Panel -->
+                        <div class="dash-card card-preorder">
+                            <div class="card-header">
+                                <h3>📱 Smart Pre-Order</h3>
+                                <span class="ai-badge">AI Timing</span>
+                            </div>
+                            <div class="preorder-content">
+                                <div class="preorder-form">
+                                    <select class="preorder-select" id="preorderStall">
+                                        <option value="">Select a food stall...</option>
+                                    </select>
+                                    <select class="preorder-select" id="preorderItem">
+                                        <option value="">Select item...</option>
+                                    </select>
+                                    <div class="preorder-ai-suggest" id="preorderSuggest">
+                                        <div class="ai-suggest-icon">🤖</div>
+                                        <div class="ai-suggest-text">
+                                            <strong>AI Suggests:</strong>
+                                            <span id="aiSuggestText">Select a stall to get AI timing recommendations</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary" id="btnPreorder">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                        Place Pre-Order
+                                    </button>
+                                </div>
+                                <div class="active-orders" id="activeOrders">
+                                    <h4>Active Orders</h4>
+                                    <div class="orders-list" id="ordersList"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== VIEW: NAVIGATION ========== -->
+            <section id="view-navigation" class="view">
+                <div class="view-content">
+                    <div class="nav-hero">
+                        <h2>Stadium <span class="accent">Navigator</span></h2>
+                        <p>AR-powered indoor navigation — Google Maps for Stadiums</p>
+                    </div>
+                    <div class="nav-grid">
+                        <div class="dash-card card-nav-map">
+                            <div class="card-header">
+                                <h3>🗺️ Interactive Stadium Map</h3>
+                                <div class="card-actions">
+                                    <button class="card-action-btn active" data-floor="ground">Ground</button>
+                                    <button class="card-action-btn" data-floor="upper">Upper</button>
+                                    <button class="card-action-btn" data-floor="vip">VIP</button>
+                                </div>
+                            </div>
+                            <div class="nav-map-container">
+                                <canvas id="navMapCanvas"></canvas>
+                                <div class="nav-poi-list" id="navPoiList"></div>
+                            </div>
+                        </div>
+                        <div class="dash-card card-nav-directions">
+                            <div class="card-header"><h3>📍 Navigate To</h3></div>
+                            <div class="nav-search">
+                                <input type="text" placeholder="Search destination..." id="navSearch" class="nav-search-input">
+                            </div>
+                            <div class="nav-quick-links" id="navQuickLinks"></div>
+                            <div class="nav-route-result hidden" id="navRouteResult">
+                                <div class="route-header">
+                                    <span class="route-dest" id="routeDest"></span>
+                                    <span class="route-eta" id="routeEta"></span>
+                                </div>
+                                <div class="route-steps" id="routeSteps"></div>
+                            </div>
+                        </div>
+                        <!-- AR Preview -->
+                        <div class="dash-card card-ar-preview">
+                            <div class="card-header">
+                                <h3>👓 AR Navigation Preview</h3>
+                                <span class="card-subtitle">Augmented Reality Overlay</span>
+                            </div>
+                            <div class="ar-preview" id="arPreview">
+                                <div class="ar-viewport">
+                                    <div class="ar-arrow" id="arArrow">➤</div>
+                                    <div class="ar-distance" id="arDistance">45m ahead</div>
+                                    <div class="ar-destination" id="arDestination">Gate A — Food Court</div>
+                                    <div class="ar-overlay-lines">
+                                        <div class="ar-line l1"></div>
+                                        <div class="ar-line l2"></div>
+                                        <div class="ar-line l3"></div>
+                                    </div>
+                                </div>
+                                <div class="ar-footer">
+                                    <span>🎯 Voice: "Turn right in 15 meters"</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== VIEW: FAN EXPERIENCE ========== -->
+            <section id="view-fan" class="view">
+                <div class="view-content">
+                    <div class="fan-hero">
+                        <h2>Fan <span class="accent">Experience</span></h2>
+                        <p>Personalized, gamified, immersive</p>
+                    </div>
+                    <div class="fan-grid">
+                        <!-- Live Match -->
+                        <div class="dash-card card-live-match">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3>⚽ Live Match</h3>
+                                    <span class="live-tag"><span class="live-dot"></span>LIVE</span>
+                                </div>
+                            </div>
+                            <div class="match-display">
+                                <div class="match-team">
+                                    <div class="team-logo team-a">IND</div>
+                                    <span class="team-name">India</span>
+                                </div>
+                                <div class="match-score-center">
+                                    <div class="match-score" id="matchScore">245 / 4</div>
+                                    <div class="match-info" id="matchInfo">35.2 Overs</div>
+                                    <div class="match-status" id="matchStatus">India batting</div>
+                                </div>
+                                <div class="match-team">
+                                    <div class="team-logo team-b">AUS</div>
+                                    <span class="team-name">Australia</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Recommendations -->
+                        <div class="dash-card card-recommendations">
+                            <div class="card-header">
+                                <h3>🤖 AI Recommendations</h3>
+                                <span class="ai-badge">Personalized</span>
+                            </div>
+                            <div class="rec-list" id="recList"></div>
+                        </div>
+
+                        <!-- Gamification -->
+                        <div class="dash-card card-gamification">
+                            <div class="card-header"><h3>🎮 Stadium Quest</h3></div>
+                            <div class="gamification-content">
+                                <div class="gami-profile">
+                                    <div class="gami-avatar">⭐</div>
+                                    <div class="gami-info">
+                                        <span class="gami-name">Fan Level: Gold</span>
+                                        <div class="gami-xp-bar">
+                                            <div class="gami-xp-fill" style="width: 72%"></div>
+                                        </div>
+                                        <span class="gami-xp-text">720 / 1000 XP</span>
+                                    </div>
+                                    <div class="gami-points">
+                                        <span class="gami-pts-val" id="gamiPoints">2,450</span>
+                                        <span class="gami-pts-label">Points</span>
+                                    </div>
+                                </div>
+                                <div class="gami-quests" id="gamiQuests"></div>
+                            </div>
+                        </div>
+
+                        <!-- Merchandise -->
+                        <div class="dash-card card-merch">
+                            <div class="card-header"><h3>🛍️ Nearby Merchandise</h3></div>
+                            <div class="merch-grid" id="merchGrid"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== VIEW: EMERGENCY ========== -->
+            <section id="view-emergency" class="view">
+                <div class="view-content">
+                    <div class="emergency-header">
+                        <div class="emergency-status" id="emergencyStatus">
+                            <div class="em-status-icon safe">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="em-status-info">
+                                <h2>All Clear</h2>
+                                <p>No active emergencies detected</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="emergency-grid">
+                        <!-- Anomaly Detection -->
+                        <div class="dash-card card-anomaly">
+                            <div class="card-header">
+                                <h3>🔍 AI Anomaly Detection</h3>
+                                <span class="card-subtitle">Real-time behavioral analysis</span>
+                            </div>
+                            <div class="anomaly-list" id="anomalyList"></div>
+                        </div>
+
+                        <!-- Evacuation -->
+                        <div class="dash-card card-evacuation">
+                            <div class="card-header">
+                                <h3>🚨 Evacuation System</h3>
+                            </div>
+                            <div class="evac-content">
+                                <div class="evac-map">
+                                    <canvas id="evacMapCanvas"></canvas>
+                                </div>
+                                <div class="evac-routes" id="evacRoutes"></div>
+                                <button class="btn-emergency" id="btnSimEvac">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    Simulate Evacuation
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Communication -->
+                        <div class="dash-card card-comms">
+                            <div class="card-header"><h3>📢 Mass Communication</h3></div>
+                            <div class="comms-content">
+                                <textarea class="comms-input" id="commsMessage" placeholder="Type emergency broadcast message..."></textarea>
+                                <div class="comms-targets">
+                                    <label class="comms-target"><input type="checkbox" checked> App Notifications</label>
+                                    <label class="comms-target"><input type="checkbox" checked> PA System</label>
+                                    <label class="comms-target"><input type="checkbox"> SMS Blast</label>
+                                    <label class="comms-target"><input type="checkbox"> LED Displays</label>
+                                </div>
+                                <button class="btn-primary btn-broadcast" id="btnBroadcast">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                    Broadcast Now
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Medical -->
+                        <div class="dash-card card-medical">
+                            <div class="card-header"><h3>🏥 Medical Response</h3></div>
+                            <div class="medical-stats">
+                                <div class="med-stat">
+                                    <span class="med-val" id="medTeams">8</span>
+                                    <span class="med-label">Active Teams</span>
+                                </div>
+                                <div class="med-stat">
+                                    <span class="med-val med-green" id="medResponse">2.1</span>
+                                    <span class="med-label">Avg Response (min)</span>
+                                </div>
+                                <div class="med-stat">
+                                    <span class="med-val" id="medCases">3</span>
+                                    <span class="med-label">Active Cases</span>
+                                </div>
+                            </div>
+                            <div class="medical-list" id="medicalList"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Notification Panel -->
+    <div class="notif-panel hidden" id="notifPanel">
+        <div class="notif-panel-header">
+            <h3>Notifications</h3>
+            <button class="notif-close" id="notifClose">&times;</button>
+        </div>
+        <div class="notif-list" id="notifList"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
